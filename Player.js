@@ -1,35 +1,48 @@
 class Player {
-  constructor() {
-    this.balls = 0;
-    this.moves = [];
-    this.blocks = 0;
+  constructor () {
+    this.balls = 0
+    this.moves = []
+    this.blocks = 0
   }
-  addMove(move) {
-    return this.moves.push(move);
+
+  addMove (move) {
+    return this.moves.push(move)
   }
-  addBall() {
-    return this.balls += 1;
+
+  addBall () {
+    this.balls += 1
+    return this.balls
   }
-  addBlock() {
-    return this.blocks += 1;
+
+  addBlock () {
+    this.blocks += 1
+    return this.blocks
   }
-  removeBall() {
-    return this.balls -= 1;
+
+  removeBall () {
+    this.balls -= 1
+    return this.balls
   }
-  removeBlock() {
-    return this.blocks = 0;
+
+  removeBlock () {
+    this.blocks = 0
+    return this.blocks
   }
-  clearMoves() {
-    return this.moves = [];
+
+  clearMoves () {
+    this.moves = []
+    return this.moves
   }
-  blocks() {
-    return this.moves.filter(elt => elt.includes('B')).length;
+
+  blocks () {
+    return this.moves.filter(elt => elt.includes('B')).length
     /**
      * @todo Changer et mettre le nombre des dernier bloquage qui se suivent
      */
   }
-  lastMove() {
-    return this.moves[this.moves.length - 1];
+
+  lastMove () {
+    return this.moves[this.moves.length - 1]
   }
 }
-exports.Player = Player;
+exports.Player = Player

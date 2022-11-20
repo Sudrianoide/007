@@ -1,22 +1,22 @@
-const app = require('express')();
+const app = require('express')()
 const express = require('express')
-const http = require('http').Server(app);
-const io = require('socket.io')(http);
-const port = process.env.PORT || 8080;
+const http = require('http').Server(app)
+const io = require('socket.io')(http)
+const config = require('config');
+const port = process.env.PORT || config.get('server.port')
 const { SerialPort } = require('serialport')
 const { MockBinding } = require('@serialport/binding-mock')
-const log = require('node-color-log');
-const open = require('open');
-const { Player } = require("./Player");
-const { predict } = require("./predict");
+const log = require('node-color-log')
+const open = require('open')
+const { Player } = require('./Player')
+const { predict } = require('./predict')
 
-var usbserial = '/dev/ttyUSB0';
-// var usbserial = '/dev/ttyACM0';
+let usbserial = config.get('arduino.serialPort')
 
-let mock = process.env.MOCK || false;
+const mock = process.env.MOCK || false
 
-let arduino;
-let adverse, ia
+let arduino
+let adverse, ia, playing
 
 if (mock) {
   usbserial = '/dev/FAKEPORT'
@@ -28,40 +28,40 @@ if (mock) {
 }
 
 arduino.on('open', (info) => {
-  log.info('Listening on serial port: ', usbserial);
-});
+  log.info('Listening on serial port: ', usbserial)
+})
 
 arduino.on('error', (err) => {
   log.error('Error from Arduino: ', err.message)
-  io.emit('debug', `Error from Arduino: ${err.toString()}`);
-});
+  io.emit('debug', `Error from Arduino: ${err.toString()}`)
+})
 
 arduino.on('data', (data) => {
   debug(`Data from Arduino: ${data.toString()}`)
-});
+})
 
 io.on('connection', (socket) => {
-  log.info('Browser connected');
+  log.info('Browser connected')
 
   socket.on('debug', msg => {
-    debug('Data from browser: ', msg);
+    debug('Data from browser: ', msg)
     arduino.write(msg)
-  });
+  })
 
   socket.on('state', (state) => {
     switch (state) {
       case 'start':
         init()
-        debug(state);
-        break;
+        debug(state)
+        break
 
       case 'stop':
-        init();
-        debug(state);
-        break;
+        init()
+        debug(state)
+        break
 
       default:
-        break;
+        break
     }
   })
 
@@ -72,7 +72,7 @@ io.on('connection', (socket) => {
 
     adverse, ia, playing = await predict(adverse, ia)
     if (playing) {
-      let prediction = ia.lastMove()
+      const prediction = ia.lastMove()
       debug(adverse.moves)
       debug(ia.moves)
       debug(`Pose to do: ${prediction}`)
@@ -83,15 +83,15 @@ io.on('connection', (socket) => {
       init()
     }
   })
-});
+})
 
-
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(`${__dirname}/public`))
 
 http.listen(port, () => {
-  log.info(`Socket.IO server running at http://localhost:${port}/`);
-  !mock ? open(`http://localhost:${port}/`) : null
-});
+  const isMock = mock
+  log.info(`Socket.IO server running at http://localhost:${port}/`)
+  !isMock ? open(`http://localhost:${port}/`) : null
+})
 
 function debug(param) {
   log.debug(param)
@@ -99,12 +99,11 @@ function debug(param) {
 }
 
 function init() {
-  pose = '0';
-  arduino.write(pose);
+  pose = '0'
+  arduino.write(pose)
   adverse = new Player()
   ia = new Player()
   ia.addMove('C')
 }
 
 init()
-
