@@ -9,16 +9,17 @@ const { MockBinding } = require('@serialport/binding-mock')
 const log = require('node-color-log')
 const open = require('open')
 const { Player } = require('./Player')
-const { predict } = require('./predict')
+const { predict } = require('./predict');
+const { tunnel } = require('./tunnel');
 
 let usbserial = config.get('arduino.serialPort')
 
-const mock = process.env.MOCK || false
+const isMock = process.env.MOCK || false
 
 let arduino
 let adverse, ia, playing
 
-if (mock) {
+if (isMock) {
   usbserial = '/dev/FAKEPORT'
   MockBinding.createPort(usbserial, { echo: true, record: true })
   arduino = new SerialPort({ binding: MockBinding, path: usbserial, baudRate: 9600 })
@@ -87,10 +88,11 @@ io.on('connection', (socket) => {
 
 app.use(express.static(`${__dirname}/public`))
 
+
 http.listen(port, () => {
-  const isMock = mock
   log.info(`Socket.IO server running at http://localhost:${port}/`)
   !isMock ? open(`http://localhost:${port}/`) : null
+  tunnel(port)
 })
 
 function debug(param) {
